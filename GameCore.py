@@ -228,7 +228,6 @@ def min_max_search1(board,color,depth=7):
 
             cashe.append(new_step_cashe)
     #find the best choice based on the final step's expected value
-
     print('!!!!!!!!!!!!!!!!!!!!!!!!!')
     path = []
     value = []
@@ -419,7 +418,12 @@ def alpha_beta1con(Board, color, depth,player_color,value_pair):
                     return _min
             # print('{},{}...{}'.format(depth, val, '-'))
             return val
-
+def eval(Board,color):
+    '''
+    A component of the new evaluation method based on renforcement learning, takes the current board situation and returns a probability of winning
+    for player 'color'.
+    
+    '''
 
 def printBoard(gameBoard):
     # print the board for checking
