@@ -1,3 +1,8 @@
+"""
+Provide a neural network barebone for implementation
+TODO: 1. Test cases
+2. Documentation and understanding the code.
+"""
 import numpy as np
 
 
