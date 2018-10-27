@@ -79,3 +79,9 @@ class NeuralNetwork:
         output_vector = activation_function(output_vector)
 
         return output_vector
+
+#A test case
+if __name__ == '__main__':
+    raw_network = NeuralNetwork(10,10,100,0.1)
+    output = raw_network.run([1,1,1,1,1,1,1,1,1,1])
+    print(output)
