@@ -1,3 +1,6 @@
+"""
+Todo: store the value of [B,n] for each game.
+"""
 import random
 import time
 # Initialize the board with all zeros except the middle

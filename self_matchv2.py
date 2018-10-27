@@ -1,7 +1,5 @@
 '''
 An implementation of the alpha-beta search tree with a simple evaluation method(sum of space)
-
-
 '''
 import GameCore as GM
 import time
