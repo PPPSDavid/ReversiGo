@@ -2,7 +2,9 @@
 Todo: store the value of [B,n] for each game.
 """
 import random
-import time
+import Evaluation as Evl
+
+
 # Initialize the board with all zeros except the middle
 def setBoard(dimension):
     gameBoard = []
@@ -20,6 +22,7 @@ def setBoard(dimension):
 
             else:
                 gameBoard[i][j] = -1
+
     return(gameBoard)
 
 def makeMove(gameBoard,color,position):
@@ -368,40 +371,6 @@ def alpha_beta1(Board,color,depth):
     #print()
     #print(best_path)
     return best_path
-def alpha_beta2(Board,color,depth,output):
-    dimension = len(Board)
-    boardTemp = []
-    for i in range(dimension):
-        new_row = []
-        for j in range(dimension):
-            new_row.append(Board[i][j])
-        boardTemp.append(new_row)
-    new_step_cashe = []
-    possible_decisions = getValidMove(boardTemp, color)
-    for j in possible_decisions:
-        new_board = makeMove(boardTemp, color, j)
-        new_step_cashe.append([new_board, j, 0])
-    # print(new_step_cashe)
-    for k in new_step_cashe:
-        # change this to change the method
-        k[2] = alpha_beta1con(k[0], -color, depth - 1, color, [-9999, 99999])
-    best_value = 0
-    best_path = []
-    for k in new_step_cashe:
-        # print(k[1],end=",")
-        if k[2] > best_value:
-            best_value = k[2]
-            best_path = k[1]
-        else:
-            if k[2] == best_value:
-                a = random.randint(1, 101)
-                if a >= 25:
-                    best_path = k[1]
-    # print()
-    # print(best_path)
-    #If the color is equal to the final winning one, set to 1, otherwise set to 0
-    output.append([best_value,color])
-    return best_path
 def alpha_beta1con(Board, color, depth,player_color,value_pair):
     '''Complementing the main method, iterate all possibilites through recursion and the min-max decision tree.'''
     # print(color)
@@ -454,12 +423,134 @@ def alpha_beta1con(Board, color, depth,player_color,value_pair):
                     return _min
             # print('{},{}...{}'.format(depth, val, '-'))
             return val
-def eval(Board,color):
+def alpha_beta2(Board,color,depth,output):
+    dimension = len(Board)
+    boardTemp = []
+    for i in range(dimension):
+        new_row = []
+        for j in range(dimension):
+            new_row.append(Board[i][j])
+        boardTemp.append(new_row)
+    new_step_cashe = []
+    possible_decisions = getValidMove(boardTemp, color)
+    for j in possible_decisions:
+        new_board = makeMove(boardTemp, color, j)
+        new_step_cashe.append([new_board, j, 0])
+    # print(new_step_cashe)
+    for k in new_step_cashe:
+        # change this to change the method
+        k[2] = alpha_beta1con2(k[0], -color, depth - 1, color, [-9999, 99999])
+    best_value = 0
+    best_path = []
+    for k in new_step_cashe:
+        # print(k[1],end=",")
+        if k[2] > best_value:
+            best_value = k[2]
+            best_path = k[1]
+        else:
+            if k[2] == best_value:
+                a = random.randint(1, 101)
+                if a >= 25:
+                    best_path = k[1]
+    # print()
+    # print(best_path)
+    #If the color is equal to the final winning one, set to 1, otherwise set to 0
+    output.append([Board,0,color])
+    return best_path
+def alpha_beta1con2(Board, color, depth,player_color,value_pair,neuralnetwork):
+    '''Complementing the main method, iterate all possibilites through recursion and the min-max decision tree.'''
+    # print(color)
+    # print(player_color)
+    #print('{}|||{}'.format(depth,value_pair))
+    _min = value_pair[0]
+    _max = value_pair[1]
+    test = getValidMove(Board,color)
+    if depth == 0 or len(test)==0:
+        # print('{}...{}'.format(0,getBoardValue(Board,player_color)))
+        # Could be replaced by a better evaluation principle.
+        return eval(Board,player_color,neuralnetwork)
+    else:
+        if color == player_color:
+            #the Max nodes
+            val = _min
+            # create all the possible children from this game position
+            children_nodes = []
+            possible_moves = getValidMove(Board, color)
+            for j in possible_moves:
+                new_board = makeMove(Board, color, j)
+                new_color = -1 * color
+                children_nodes.append([new_board, new_color, player_color])
+            for child in children_nodes:
+                temp = alpha_beta1con(child[0], child[1], depth - 1, player_color,[val,_max])
+                if temp > val:
+                    val = temp
+                #If a children of max node is higher than the max of its parent, Purning.
+                if temp>_max:
+                    #print('cut')
+                    return _max
+
+            # print('{},{}...{}'.format(depth,val,'+'))
+            return val
+        else:
+            #a min node, which should cut if the children of such node has a lower value than min
+            val = _max
+            children_nodes = []
+            possible_moves = getValidMove(Board, color)
+            for j in possible_moves:
+                new_board = makeMove(Board, color, j)
+                new_color = -1 * color
+                children_nodes.append([new_board, new_color, player_color])
+            for child in children_nodes:
+                temp = alpha_beta1con(child[0], child[1], depth - 1, player_color,[_min,val])
+                if temp < val:
+                    val = temp
+                if temp < _min:
+                    #print('cut')
+                    return _min
+            # print('{},{}...{}'.format(depth, val, '-'))
+            return val
+def eval(Board,color,neural_network):
     '''
     A component of the new evaluation method based on renforcement learning, takes the current board situation and returns a probability of winning
     for player 'color'.
-    
+    Always predict the win percentage of 1, if color is -1, then return 1-x
     '''
+    #Initialize the input vector
+    input_vec = []
+    for i in Board:
+        for j in i:
+            input_vec.append(j)
+    #initialize the neural network and get result
+    output = neural_network.run(input_vec)
+    #compare to see which color is to be predicted
+    if color == 1:
+        return output
+    else:
+        return 1-output
+
+def training(board,output,neuralnetwork):
+    #Initialze the training samples
+    if(getBoardValue(board,1)>getBoardValue(board,-1)):
+        for i in output:
+            if i[2]==1:
+                i[1]=[1]
+            else:
+                i[1]=[0]
+    else:
+        for i in output:
+            if i[2] == -1:
+                i[1] = [1]
+            else:
+                i[1]=[0]
+    #start training
+    for i in output:
+        input_vec = []
+        for m in i[0]:
+            for n in m:
+                input_vec.append(n)
+        neuralnetwork.train(input_vec,i[1])
+    #return the new neural network
+    return neuralnetwork
 
 def printBoard(gameBoard):
     # print the board for checking
