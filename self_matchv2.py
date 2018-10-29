@@ -1,5 +1,5 @@
 '''
-An implementation of the alpha-beta search tree with a simple evaluation method(sum of space)
+An implementation of the alpha-beta search tree with a simple evaluation method(sum of space) and multi threading
 '''
 import GameCore as GM
 import time
