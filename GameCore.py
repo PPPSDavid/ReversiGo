@@ -423,7 +423,7 @@ def alpha_beta1con(Board, color, depth,player_color,value_pair):
                     return _min
             # print('{},{}...{}'.format(depth, val, '-'))
             return val
-def alpha_beta2(Board,color,depth,output):
+def alpha_beta2(Board,color,depth,output,neuralnetwork):
     dimension = len(Board)
     boardTemp = []
     for i in range(dimension):
@@ -439,7 +439,7 @@ def alpha_beta2(Board,color,depth,output):
     # print(new_step_cashe)
     for k in new_step_cashe:
         # change this to change the method
-        k[2] = alpha_beta1con2(k[0], -color, depth - 1, color, [-9999, 99999])
+        k[2] = alpha_beta1con2(k[0], -color, depth - 1, color, [-9999, 99999],neuralnetwork)
     best_value = 0
     best_path = []
     for k in new_step_cashe:
@@ -542,6 +542,7 @@ def training(board,output,neuralnetwork):
                 i[1] = [1]
             else:
                 i[1]=[0]
+    print(output)
     #start training
     for i in output:
         input_vec = []

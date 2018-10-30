@@ -31,8 +31,11 @@ class NeuralNetwork:
         self.no_of_out_nodes = no_of_out_nodes
         self.no_of_hidden_nodes = no_of_hidden_nodes
         self.learning_rate = learning_rate
+        self.error_list = []
         self.create_weight_matrices()
-
+    def get_weight_matrices(self):
+        print(self.weights_in_hidden)
+        print(self.weights_hidden_out)
     def create_weight_matrices(self):
         """
         A method to initialize the weight matrices of the neural network
@@ -59,6 +62,8 @@ class NeuralNetwork:
         output_vector_network = activation_function(output_vector2)
 
         output_errors = target_vector - output_vector_network
+        self.error_list.append(output_errors)
+        # print(output_errors)
         # update the weights:
         tmp = output_errors * output_vector_network * (1.0 - output_vector_network)
         tmp = self.learning_rate * np.dot(tmp, output_vector_hidden.T)
