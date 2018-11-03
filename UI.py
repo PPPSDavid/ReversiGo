@@ -9,19 +9,30 @@ Implementing type: Print statement
 """
 
 import GameCore as GM
-import sys
+
 
 def make_move(type,color,gameboard,depth):
     if type == 1:
-        dim1 = input('please print the first dimension')
-        dim2 = input('please print the second dimension')
-        return GM.makeMove(gameboard,color,[dim1,dim2])
+        dim1 = int(input('please print the first dimension'))
+        dim2 = int(input('please print the second dimension'))
+        temp =  GM.makeMove(gameboard,color,[dim1,dim2])
+        if temp == gameboard:
+            print('Invalid Move, try again')
+            return make_move(1,color,gameboard,0)
+        return temp
     else:
         if type==2:
             return GM.makeMove(gameboard, color, GM.min_max2(gameboard,color,depth))
         if type==3:
             return GM.makeMove(gameboard, color, GM.alpha_beta1(gameboard, color, depth))
 
+def get_help(type, board, color):
+    if type == 1:
+        #return all possible moves
+        print(GM.getValidMove(board,color))
+    if type == 2:
+        #return the best move predicted by AB
+        print(GM.alpha_beta1(board,color,3))
 
 
 while True:
@@ -72,7 +83,6 @@ while True:
                 input('press any key to see next step')
 
             if len(test_2) != 0:
-
                 gameboard = make_move(ai_type2,-1,gameboard,search_depth2)
                 test_1 = GM.getValidMove(gameboard, 1)
                 test_2 = GM.getValidMove(gameboard, -1)
@@ -83,3 +93,98 @@ while True:
         print('1 Wins by {}'.format(GM.getBoardValue(gameboard,1)-GM.getBoardValue(gameboard,-1)))
     else:
         print('-1 Wins by {}'.format(-GM.getBoardValue(gameboard, 1) + GM.getBoardValue(gameboard, -1)))
+    if game_type==1:
+        #pvp
+        print('PvP selected, please get ready!')
+        print('----------------------------------------------------')
+        print('GAME START')
+        test_1 = GM.getValidMove(gameboard, 1)
+        test_2 = GM.getValidMove(gameboard, -1)
+        while (len(test_1) != 0 or len(test_2) != 0):
+            if len(test_1) != 0:
+                GM.printBoard(gameboard)
+                print('press 1 to find all valid move or 2 to find some suggestion, 3 to skip')
+                help = int(input('start here'))
+                if help == 3:
+                    pass
+                else:
+                    get_help(help,gameboard,1)
+                print('now Player 1 turn')
+                gameboard = make_move(1,1,gameboard,0)
+                print('The new board is:')
+                GM.printBoard(gameboard)
+            if len(test_2) != 0:
+                GM.printBoard(gameboard)
+                print('press 1 to find all valid move or 2 to find some suggestion, 3 to skip')
+                help = int(input('start here'))
+                if help == 3:
+                    pass
+                else:
+                    get_help(help, gameboard, -1)
+                print('now Player 2 turn')
+                gameboard = make_move(1,-1,gameboard,0)
+                print('The new board is:')
+                GM.printBoard(gameboard)
+        if GM.getBoardValue(gameboard, 1) > GM.getBoardValue(gameboard, -1):
+            print('1 Wins by {}'.format(GM.getBoardValue(gameboard, 1) - GM.getBoardValue(gameboard, -1)))
+        else:
+            print('-1 Wins by {}'.format(-GM.getBoardValue(gameboard, 1) + GM.getBoardValue(gameboard, -1)))
+    if game_type == 2:
+        # pve
+        print('press 1 for start first and 2 for start 2')
+        start_first = int(input('please input:'))
+        print('please select the desired ai type')
+        ai_type = int(input('3 for AB, 2 for min max.'))
+        search_depth = int(input('please indecate the desired search depth'))
+        print('PvE selected, please get ready!')
+        print('----------------------------------------------------')
+        print('GAME START')
+        test_1 = GM.getValidMove(gameboard, 1)
+        test_2 = GM.getValidMove(gameboard, -1)
+        while (len(test_1) != 0 or len(test_2) != 0):
+            if len(test_1) != 0:
+                if start_first == 1:
+
+                    GM.printBoard(gameboard)
+                    print('press 1 to find all valid move or 2 to find some suggestion, 3 to skip')
+                    help = int(input('start here'))
+                    if help == 3:
+                        pass
+                    else:
+                        get_help(help, gameboard, 1)
+                    print('now Player 1 turn')
+                    gameboard = make_move(1, 1, gameboard, 0)
+                    print('The new board is:')
+                    GM.printBoard(gameboard)
+                else:
+                    gameboard = make_move(ai_type, 1, gameboard, search_depth)
+                    test_1 = GM.getValidMove(gameboard, 1)
+                    test_2 = GM.getValidMove(gameboard, -1)
+                    print('The following step is {}'.format(1))
+                    GM.printBoard(gameboard)
+                    input('press any key to see next step')
+
+            if len(test_2) != 0:
+                if start_first == 2:
+                    GM.printBoard(gameboard)
+                    print('press 1 to find all valid move or 2 to find some suggestion, 3 to skip')
+                    help = int(input('start here'))
+                    if help == 3:
+                        pass
+                    else:
+                        get_help(help, gameboard, -1)
+                    print('now Player 2 turn')
+                    gameboard = make_move(1, -1, gameboard, 0)
+                    print('The new board is:')
+                    GM.printBoard(gameboard)
+                else:
+                    gameboard = make_move(ai_type, -1, gameboard, search_depth)
+                    test_1 = GM.getValidMove(gameboard, 1)
+                    test_2 = GM.getValidMove(gameboard, -1)
+                    print('The following step is {}'.format(-1))
+                    GM.printBoard(gameboard)
+                    input('press any key to see next step')
+        if GM.getBoardValue(gameboard, 1) > GM.getBoardValue(gameboard, -1):
+            print('1 Wins by {}'.format(GM.getBoardValue(gameboard, 1) - GM.getBoardValue(gameboard, -1)))
+        else:
+            print('-1 Wins by {}'.format(-GM.getBoardValue(gameboard, 1) + GM.getBoardValue(gameboard, -1)))

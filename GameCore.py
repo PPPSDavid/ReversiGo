@@ -1,5 +1,10 @@
 """
 Todo: store the value of [B,n] for each game.
+
+Module needed:
+numpy
+scipy
+
 """
 import random
 import Evaluation as Evl
@@ -260,7 +265,7 @@ def min_max_search1(board,color,depth=7):
             #print(comparasion)
             count = 1
             sum = value[i]
-    result.append([path[i-1][0],sum/count])
+        result.append([path[i-1][0],sum/count])
     print(result)
 
 
@@ -279,13 +284,13 @@ def min_max2(Board,color,depth):
     for j in possible_decisions:
         new_board = makeMove(boardTemp, color, j)
         new_step_cashe.append([new_board, j, 0])
-    print(new_step_cashe)
+    #print(new_step_cashe)
     for k in new_step_cashe:
         k[2]=min_max2con(k[0],-color,depth-1,color)
     best_value = 0
     best_path = []
     for k in new_step_cashe:
-        print(k[2])
+        #print(k[2])
         if k[2]>best_value:
             best_value=k[2]
             best_path=k[1]
@@ -294,7 +299,7 @@ def min_max2(Board,color,depth):
                 a = random.randint(1,101)
                 if a >=25:
                     best_path = k[1]
-    print(best_path)
+    return(best_path)
 
 
 
