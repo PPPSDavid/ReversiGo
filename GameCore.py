@@ -1,5 +1,5 @@
 """
-Todo: store the value of [B,n] for each game.
+Todo: MTCR search tree + a better Neural network
 
 Module needed:
 numpy
@@ -32,12 +32,13 @@ def setBoard(dimension):
 
 def makeMove(gameBoard,color,position):
     dimension = len(gameBoard)
-    #Vertical axis
+
+    # Vertical axis
     xAxis = position[0]
-    #Horizontal axis(2nd loop)
+    # Horizontal axis(2nd loop)
     yAxis = position[1]
     gameBoardTemp = []
-    #horizontal cases
+
     for i in range(dimension):
         new_row = []
         for j in range(dimension):
@@ -45,9 +46,7 @@ def makeMove(gameBoard,color,position):
         gameBoardTemp.append(new_row)
     gameBoardTemp[xAxis][yAxis]=color
 
-
-#horizontal case
-
+    # horizontal case
     for i in range(dimension):
 
         block = gameBoardTemp[xAxis][i]
@@ -55,7 +54,7 @@ def makeMove(gameBoard,color,position):
             continue
         if block==color:
             isValid = True
-            #see if there is zero entries between the two same color ones
+            # see if there is zero entries between the two same color ones
             for j in range(min(i,yAxis)+1,max(i,yAxis)):
                 if gameBoardTemp[xAxis][j]==0 or gameBoardTemp[xAxis][j]==color:
                     isValid = False
@@ -63,9 +62,7 @@ def makeMove(gameBoard,color,position):
                 for j in range(min(i, yAxis), max(i, yAxis) + 1):
                     gameBoardTemp[xAxis][j]=color
 
-
-#vertical case
-
+    # vertical case
     for i in range(dimension):
         block = gameBoardTemp[i][yAxis]
         if (i==xAxis+1 or i==xAxis-1) and block == color:
@@ -79,39 +76,37 @@ def makeMove(gameBoard,color,position):
                 for j in range(min(i, xAxis), max(i, xAxis) + 1):
                     gameBoardTemp[j][yAxis]=color
 
-
-
-#disgenal cases: lower right(++) lower left(--) upper right(-+） upper left(--)
+    # diagonal cases: lower right(++) lower left(--) upper right(-+） upper left(--)
     for PoOrNeg in [1,-1]:
         for PoOrNeg2 in [1, -1]:
             for i in range(1,dimension):
                 isValid = False
                 if xAxis + PoOrNeg*i >= dimension or yAxis + PoOrNeg2*i >= dimension or xAxis + PoOrNeg*i < 0 or  yAxis + PoOrNeg*i < 0:
                     break
-                #print("{},{},{}".format(PoOrNeg, PoOrNeg2, i))
+
                 block = gameBoardTemp[xAxis + PoOrNeg*i][yAxis + PoOrNeg2*i]
                 if block==0:
                     break
                 if i==1 and block==color:
                     continue
                 if block == color:
-                    #print("{},{},{}1".format(PoOrNeg, PoOrNeg2, i))
+
                     isValid = True
                 for j in range(1,i):
                     if gameBoardTemp[xAxis + PoOrNeg*j][yAxis + PoOrNeg2*j]!=-color:
                         isValid = False
                 if isValid:
-                    #print("{},{},{},2".format(PoOrNeg,PoOrNeg2,i))
+
                     for j in range(i):
                         gameBoardTemp[xAxis +  PoOrNeg*j][yAxis +  PoOrNeg2*j] = color
-    #print('{},{}!'.format(gameBoard[3][2],gameBoardTemp[3][2]))
 
     compare_ = compare_board(gameBoard,gameBoardTemp)
     if compare_:
         return gameBoardTemp
     else:
         return gameBoard
-#comparing whether any legal change has been made between two boards
+
+# comparing whether any legal change has been made between two boards
 def compare_board(board1, board2):
     dimension = len(board1)
     count = 0
@@ -125,7 +120,7 @@ def compare_board(board1, board2):
     else:
         return True
 
-#Return the true false value to determine whether this is a valid move
+# Return the true false value to determine whether this is a valid move
 def test_validity(gameBoard,color,position):
     dimension = len(gameBoard)
     if gameBoard[position[0]][position[1]]!=0:
@@ -172,7 +167,7 @@ def random_match(board,step,start_color):
     printBoard(board)
     return board
 
-#Simple min-max search with a changable depth
+# Simple min-max search with a changable depth
 def min_max_search1(board,color,depth=7):
     dimension = len(board)
     cashe = []
@@ -578,7 +573,7 @@ def printBoard(gameBoard):
     print('-----------------------------------------------------')
 
 
-#test case
+# test case
 if __name__ == '__main__':
     Board = setBoard(8)
     printBoard(Board)
