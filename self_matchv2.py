@@ -22,7 +22,7 @@ def self_match2(times,output):
         while (len(test_1) != 0 or len(test_2) != 0):
             if len(test_1) != 0:
                 time_1 = time.time()
-                board = GM.makeMove(board, 1, GM.alpha_beta1(board, 1, 3))
+                board = GM.makeMove(board, 1, GM.alpha_beta_with_human(board, 1, 3))
                 new_time = time.time()-time_1
                 
                 time_1_total = time_1_total+(new_time)

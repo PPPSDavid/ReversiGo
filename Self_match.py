@@ -16,7 +16,7 @@ def self_match1(times):
         while (len(test_1) != 0 or len(test_2) != 0):
             if len(test_1) != 0:
                 time_1 = time.time()
-                board = GM.makeMove(board, 1, GM.alpha_beta1(board, 1, 3))
+                board = GM.makeMove(board, 1, GM.alpha_beta_with_human(board, 1, 3))
                 new_time = time.time()-time_1
                 
                 time_1_total = time_1_total+(new_time)
@@ -29,7 +29,7 @@ def self_match1(times):
                 
             if len(test_2) != 0:
                 time_2 = time.time()
-                board = GM.makeMove(board, -1, GM.alpha_beta1(board, -1, 2))
+                board = GM.makeMove(board, -1, GM.alpha_beta1(board, -1, 3))
                 new_time = time.time()-time_2
                 
                 time_2_total = time_2_total+(new_time)
@@ -58,6 +58,6 @@ def self_match1(times):
 
 
 if __name__=='__main__':
-    self_match1(10)
+    self_match1(5)
 
 

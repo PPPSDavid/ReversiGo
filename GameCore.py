@@ -7,6 +7,8 @@ scipy
 
 """
 import random
+import math
+
 import Evaluation as Evl
 
 
@@ -29,6 +31,7 @@ def setBoard(dimension):
                 gameBoard[i][j] = -1
 
     return(gameBoard)
+
 
 def makeMove(gameBoard,color,position):
     dimension = len(gameBoard)
@@ -81,7 +84,7 @@ def makeMove(gameBoard,color,position):
         for PoOrNeg2 in [1, -1]:
             for i in range(1,dimension):
                 isValid = False
-                if xAxis + PoOrNeg*i >= dimension or yAxis + PoOrNeg2*i >= dimension or xAxis + PoOrNeg*i < 0 or  yAxis + PoOrNeg*i < 0:
+                if xAxis + PoOrNeg*i >= dimension or yAxis + PoOrNeg2*i >= dimension or xAxis + PoOrNeg*i < 0 or  yAxis + PoOrNeg2*i < 0:
                     break
 
                 block = gameBoardTemp[xAxis + PoOrNeg*i][yAxis + PoOrNeg2*i]
@@ -106,6 +109,7 @@ def makeMove(gameBoard,color,position):
     else:
         return gameBoard
 
+
 # comparing whether any legal change has been made between two boards
 def compare_board(board1, board2):
     dimension = len(board1)
@@ -119,6 +123,7 @@ def compare_board(board1, board2):
         return False
     else:
         return True
+
 
 # Return the true false value to determine whether this is a valid move
 def test_validity(gameBoard,color,position):
@@ -150,6 +155,7 @@ def getValidMove(gameBoard, color):
                 good_moves.append([i,j])
     return good_moves
 
+
 def getBoardValue(board,color):
     count = 0
     for i in board:
@@ -158,7 +164,90 @@ def getBoardValue(board,color):
                 count+=1
     return count
 
-def random_match(board,step,start_color):
+
+def getBoard_eval_with_human(board,color):
+    a=1
+    b=1
+    c=1
+    final_eval = 0
+    """The ratio of our disks and the opponent's disks, normalized, and adjusted through time."""
+    NumOfOurs = getBoardValue(board,color)
+    NumOfOppo = getBoardValue(board,-1*color)
+    time_dependent_board_score = a*(1/(1+math.exp(-1*(NumOfOppo+NumOfOurs-len(board)*len(board)/2))))
+    final_eval+=a*(time_dependent_board_score)*(NumOfOurs/(NumOfOurs+NumOfOppo))
+    """The ratio of our mobility and the opponent's, adjusted through time."""
+    Mobility_Your = len(getValidMove(board,color))
+    Mobility_them = len(getValidMove(board, -1*color))
+    final_eval+=c*(1-time_dependent_board_score)*(Mobility_Your/(Mobility_them+Mobility_Your))
+    """The save spots we have, through time adjusted."""
+    stable_Your = 0
+    stable_Oppo = 0
+    holder = 1
+    for i in {0,7}:
+        for j in {0,7}:
+            if (board[i][j]==color):
+                stable_Your+=1
+                for k in range(1,8):
+                    if(holder<=2):
+                        if (board[i+k][j]==color):
+                            stable_Your+=1
+                        else:
+                            break
+                    else:
+                        if (board[i - k][j] == color):
+                            stable_Your += 1
+                        else:
+                            break
+                    if (board[i + k*(-1)^(holder-1)][j] == color):
+                        stable_Your += 1
+                    else:
+                        break
+            elif(board[i][j]==-1*color):
+                stable_Oppo+=1
+                for k in range(1,8):
+                    if(holder<=2):
+                        if (board[i+k][j]==-1*color):
+                            stable_Oppo+=1
+                        else:
+                            break
+                    else:
+                        if (board[i - k][j] == -1*color):
+                            stable_Oppo += 1
+                        else:
+                            break
+                    if (board[i + k*(-1)^(holder-1)][j] == -1*color):
+                        stable_Oppo += 1
+                    else:
+                        break
+            holder+=1
+    if(stable_Your==0):
+        final_eval-=c*(stable_Oppo)
+    else:
+        final_eval+=c*(stable_Your)
+    return final_eval
+
+
+def printBoard(gameBoard):
+    # print the board for checking
+    #Set horizontal Boundares
+    print('The current game board:')
+    print('-----------------------------------------------------')
+    for i in range(len(gameBoard)):
+        print('{:4d}'.format(i), end=" ")
+    print()
+    print('-----------------------------------------------------')
+
+    for i in range(len(gameBoard)):
+        for j in range(len(gameBoard[i])+1):
+            if j<len(gameBoard[i]):
+                print('{:4d}'.format(gameBoard[i][j]), end=" ")
+            else:
+                print('---{}'.format(i))
+
+    print('-----------------------------------------------------')
+
+
+def random_step(board,step,start_color):
     for i in range(step):
         possible_step = getValidMove(board,start_color)
         board=makeMove(board,start_color,random.choice(possible_step))
@@ -166,103 +255,6 @@ def random_match(board,step,start_color):
         board = makeMove(board, -1*start_color, random.choice(possible_step))
     printBoard(board)
     return board
-
-# Simple min-max search with a changable depth
-def min_max_search1(board,color,depth=7):
-    dimension = len(board)
-    cashe = []
-
-
-    #major loop that covers depth times of search
-    for i in range(depth):
-        if i==0:
-            # initialize a list to store all possible board after one step
-            boardTemp = []
-            for i in range(dimension):
-                new_row = []
-                for j in range(dimension):
-                    new_row.append(board[i][j])
-                boardTemp.append(new_row)
-            new_step_cashe = []
-            possible_decisions = getValidMove(boardTemp, color)
-            for j in possible_decisions:
-                new_board = makeMove(boardTemp, color, j)
-                new_value = getBoardValue(new_board, color)
-                new_step_cashe.append([new_board, [j], new_value])
-            cashe.append(new_step_cashe)
-
-
-
-        else:
-
-            #expand the tree from each node
-
-            new_step_cashe=[]
-
-            for board_from_last_move in range(len(cashe[i-1])):
-                if color == 1:
-                    if i % 2 == 1:
-                        color = -1
-                    else:
-                        color = 1
-                else:
-                    if i % 2 == 1:
-                        color = 1
-                    else:
-                        color = -1
-
-                #print('{}'.format(board_from_last_move))
-                possible_decisions = getValidMove(cashe[i-1][board_from_last_move][0],color)
-                #print(possible_decisions)
-                #print(possible_decisions)
-                #print('{}'.format(possible_decisions))
-                for j in possible_decisions:
-                    new_board = makeMove(cashe[i-1][board_from_last_move][0], color, j)
-                    #if i == depth-1:
-                        #printBoard(new_board)
-                    new_value = getBoardValue(new_board, color)
-                    preious_path = cashe[i - 1][board_from_last_move][1]
-                    path_copy = []
-                    length_pre = len(preious_path)
-                    for k in range(length_pre):
-                        path_copy.append(preious_path[k])
-
-                    path_copy.append(j)
-                    #if i == depth - 1:
-                        #print('{},{}'.format(path_copy,new_value))
-                    new_step_cashe.append([new_board, path_copy, new_value])
-
-            cashe.append(new_step_cashe)
-    #find the best choice based on the final step's expected value
-    print('!!!!!!!!!!!!!!!!!!!!!!!!!')
-    path = []
-    value = []
-    dimension = len(cashe[depth-1])
-    for i in range(dimension):
-        path.append(cashe[depth-1][i][1])
-        value.append(cashe[depth-1][i][2])
-    comparasion = [0,0]
-    sum = 0
-    count = 0
-    result = []
-    for i in range(dimension):
-        #print(path[i][0])
-        if path[i][0][0]==comparasion[0]and path[i][0][1]==comparasion[1]:
-            sum=sum+value[i]
-            count+=1
-        else:
-            #print(sum)
-            #print(count)
-            if count!=0:
-                result.append([path[i-1][0],(sum)/count])
-            comparasion=path[i][0]
-            #print('aa')
-            #print(comparasion)
-            count = 1
-            sum = value[i]
-        result.append([path[i-1][0],sum/count])
-    print(result)
-
 
 def min_max2(Board,color,depth):
     """Execution of the min-max search tree, fix the memory problem by recursion. Input being the board and color with a depth(<5 recommended)
@@ -295,9 +287,6 @@ def min_max2(Board,color,depth):
                 if a >=25:
                     best_path = k[1]
     return(best_path)
-
-
-
 
 
 def min_max2con(Board,color,depth,player_color):
@@ -338,7 +327,6 @@ def min_max2con(Board,color,depth,player_color):
             return val
 
 
-
 def alpha_beta1(Board,color,depth):
     dimension = len(Board)
     boardTemp = []
@@ -371,6 +359,8 @@ def alpha_beta1(Board,color,depth):
     #print()
     #print(best_path)
     return best_path
+
+
 def alpha_beta1con(Board, color, depth,player_color,value_pair):
     '''Complementing the main method, iterate all possibilites through recursion and the min-max decision tree.'''
     # print(color)
@@ -423,6 +413,8 @@ def alpha_beta1con(Board, color, depth,player_color,value_pair):
                     return _min
             # print('{},{}...{}'.format(depth, val, '-'))
             return val
+
+
 def alpha_beta2(Board,color,depth,output,neuralnetwork):
     dimension = len(Board)
     boardTemp = []
@@ -457,6 +449,8 @@ def alpha_beta2(Board,color,depth,output,neuralnetwork):
     #If the color is equal to the final winning one, set to 1, otherwise set to 0
     output.append([Board,0,color])
     return best_path
+
+
 def alpha_beta1con2(Board, color, depth,player_color,value_pair,neuralnetwork):
     '''Complementing the main method, iterate all possibilites through recursion and the min-max decision tree.'''
     # print(color)
@@ -509,6 +503,8 @@ def alpha_beta1con2(Board, color, depth,player_color,value_pair,neuralnetwork):
                     return _min
             # print('{},{}...{}'.format(depth, val, '-'))
             return val
+
+
 def eval(Board,color,neural_network):
     '''
     A component of the new evaluation method based on renforcement learning, takes the current board situation and returns a probability of winning
@@ -527,6 +523,7 @@ def eval(Board,color,neural_network):
         return output
     else:
         return 1-output
+
 
 def training(board,output,neuralnetwork):
     #Initialze the training samples
@@ -553,24 +550,94 @@ def training(board,output,neuralnetwork):
     #return the new neural network
     return neuralnetwork
 
-def printBoard(gameBoard):
-    # print the board for checking
-    #Set horizontal Boundares
-    print('The current game board:')
-    print('-----------------------------------------------------')
-    for i in range(len(gameBoard)):
-        print('{:4d}'.format(i), end=" ")
-    print()
-    print('-----------------------------------------------------')
 
-    for i in range(len(gameBoard)):
-        for j in range(len(gameBoard[i])+1):
-            if j<len(gameBoard[i]):
-                print('{:4d}'.format(gameBoard[i][j]), end=" ")
-            else:
-                print('---{}'.format(i))
+def alpha_beta_with_human(Board,color,depth):
+    dimension = len(Board)
+    boardTemp = []
+    for i in range(dimension):
+        new_row = []
+        for j in range(dimension):
+            new_row.append(Board[i][j])
+        boardTemp.append(new_row)
+    new_step_cashe = []
+    possible_decisions = getValidMove(boardTemp, color)
+    for j in possible_decisions:
+        new_board = makeMove(boardTemp, color, j)
+        new_step_cashe.append([new_board, j, 0])
+    #print(new_step_cashe)
+    for k in new_step_cashe:
+        #change this to change the method
+        k[2] = alpha_beta1con_with_human(k[0],-color,depth-1,color,[-9999,99999])
+    best_value = 0
+    best_path = []
+    for k in new_step_cashe:
+        #print(k[1],end=",")
+        if k[2] > best_value:
+            best_value = k[2]
+            best_path = k[1]
+        else:
+            if k[2] == best_value:
+                a = random.randint(1, 101)
+                if a >= 25:
+                    best_path = k[1]
+    #print()
+    #print(best_path)
+    return best_path
 
-    print('-----------------------------------------------------')
+
+def alpha_beta1con_with_human(Board, color, depth,player_color,value_pair):
+    '''Complementing the main method, iterate all possibilites through recursion and the min-max decision tree.'''
+    # print(color)
+    # print(player_color)
+    #print('{}|||{}'.format(depth,value_pair))
+    _min = value_pair[0]
+    _max = value_pair[1]
+    test = getValidMove(Board,color)
+    if depth == 0 or len(test)==0:
+        # print('{}...{}'.format(0,getBoardValue(Board,player_color)))
+        # Could be replaced by a better evaluation principle.
+        return getBoardValue(Board, player_color)
+    else:
+        if color == player_color:
+            #the Max nodes
+            val = _min
+            # create all the possible children from this game position
+            children_nodes = []
+            possible_moves = getValidMove(Board, color)
+            for j in possible_moves:
+                new_board = makeMove(Board, color, j)
+                new_color = -1 * color
+                children_nodes.append([new_board, new_color, player_color])
+            for child in children_nodes:
+                temp = alpha_beta1con_with_human(child[0], child[1], depth - 1, player_color,[val,_max])
+                if temp > val:
+                    val = temp
+                #If a children of max node is higher than the max of its parent, Purning.
+                if temp>_max:
+                    #print('cut')
+                    return _max
+
+            # print('{},{}...{}'.format(depth,val,'+'))
+            return val
+        else:
+            #a min node, which should cut if the children of such node has a lower value than min
+            val = _max
+            children_nodes = []
+            possible_moves = getValidMove(Board, color)
+            for j in possible_moves:
+                new_board = makeMove(Board, color, j)
+                new_color = -1 * color
+                children_nodes.append([new_board, new_color, player_color])
+            for child in children_nodes:
+                temp = alpha_beta1con_with_human(child[0], child[1], depth - 1, player_color,[_min,val])
+                if temp < val:
+                    val = temp
+                if temp < _min:
+                    #print('cut')
+                    return _min
+            # print('{},{}...{}'.format(depth, val, '-'))
+            return val
+
 
 
 # test case
@@ -578,26 +645,19 @@ if __name__ == '__main__':
     Board = setBoard(8)
     printBoard(Board)
     Board = makeMove(Board, 1, [4, 2])
-    #printBoard(Board)
-    #Board = makeMove(Board, -1, [3, 2])
     printBoard(Board)
     Board = makeMove(Board, -1, [5, 2])
+    Board = makeMove(Board, 1, [6, 2])
     printBoard(Board)
-    
-    #Board = makeMove(Board, 1, [2, 2])
-    #printBoard(Board)
-    #temp = test_validity(Board,1,[2,2])
-    #print('{}'.format(temp))
-    #printBoard(Board)
-    #test = getValidMove(Board,1)
-    #print('{}'.format(test))
-    #printBoard(Board)
-    #x = getBoardValue(Board,-1)
-    #printBoard(Board)
-    #print(x)
-    #y = makeMove(Board,1,[2,2])
-    #printBoard(y)
-    #printBoard(Board)
+    print(getValidMove(Board,-1))
+    Board = makeMove(Board, -1, [6, 1])
+    Board = makeMove(Board, 1, [6, 0])
+    Board = makeMove(Board, -1, [7, 0])
+    printBoard(Board)
+    num = getBoard_eval_with_human(Board,1)
+    num_2 = getBoard_eval_with_human(Board,-1)
+    print(num)
+    print(num_2)
 
     
 
